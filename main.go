@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -35,31 +36,48 @@ func main() {
 	fmt.Println("tag fix")
 
 	dryRun := flag.Bool("dry-run", true, "dry run, no changes")
+	musicDirPtr := flag.String("music-dir", "", "path to music folder")
+	overrideArtistPtr := flag.String("override_artist", "", "set new value for artist tag")
+	overrideAlbumPtr := flag.String("override_album", "", "set new value for album tag")
+	skipEmptyTags := flag.Bool("skip-empty-tags", false, "skip empty tags")
 
 	flag.Parse()
-
-	haltOnEmptyAlbum := true
 
 	changeActions := map[string]ChangeStrategy{
 		idTagArtist: {
 			ChangeAction_Owerride,
-			"Вахтанг Кикабидзе",
+			*overrideArtistPtr,
 		},
 		idTagAlbum: {
 			ChangeAction_Owerride,
-			"Вахтанг Кикабидзе",
+			*overrideAlbumPtr,
 		},
 	}
 
-	if haltOnEmptyAlbum {
+	if len(*overrideAlbumPtr) == 0 {
 		changeActions[idTagAlbum] = ChangeStrategy{
 			changeAction: ChangeAction_Halt,
 		}
 	}
 
-	//dirname := "/Users/val/Music/test"
-	dirname := "/Users/val/Music/Вахтанг Кикабидзе"
-	//dirname := "/Users/val/Music/Марина Капуро(дискография)/1980 - Рок-группа Яблоко(КА90-14435-6)"
+	changeActions[idTagTitle] = ChangeStrategy{
+		changeAction: ChangeAction_Skip,
+	}
+
+	if *skipEmptyTags {
+		changeActions[idTagAlbum] = ChangeStrategy{
+			changeAction: ChangeAction_Skip,
+		}
+		changeActions[idTagArtist] = ChangeStrategy{
+			changeAction: ChangeAction_Skip,
+		}
+	}
+
+	dirname := *musicDirPtr
+	if len(dirname) == 0 {
+		flag.PrintDefaults()
+		return
+	}
 
 	updateCount := 0
 
@@ -102,10 +120,15 @@ func main() {
 				if len(val) == 0 {
 					if changeActions[idTag].changeAction == ChangeAction_Owerride {
 						newVal := changeActions[idTag].overrideValue
-						fmt.Printf("EMPTY [%s] (file: %s), set to [%s]\n", idTag, osPathname, newVal)
+						if len(newVal) > 0 {
+							fmt.Printf("EMPTY [%s] (file: %s), set to [%s]\n", idTag, osPathname, newVal)
 
-						updaterFn(newVal)
-						updated = true
+							updaterFn(newVal)
+							updated = true
+						}
+					} else if changeActions[idTag].changeAction == ChangeAction_Halt {
+						fmt.Printf("EMPTY [%s] (file: %s), halt\n", idTag, osPathname)
+						os.Exit(0)
 					}
 				} else if tagFrame.Encoding.Key == 0 {
 
