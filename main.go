@@ -40,6 +40,7 @@ func main() {
 	overrideArtistPtr := flag.String("override-artist", "", "set new value for artist tag")
 	overrideAlbumPtr := flag.String("override-album", "", "set new value for album tag")
 	skipEmptyTags := flag.Bool("skip-empty-tags", false, "skip empty tags")
+	fixReadUtf8AsISO8859 := flag.Bool("fix-ISO8859-1", false, "undo UTF8 tag read as ISO8859-1")
 
 	flag.Parse()
 
@@ -134,11 +135,22 @@ func main() {
 
 					newVal := val
 
-					okEnc := isValidEncoding(charmap.ISO8859_1, val)
-					if !okEnc {
-						sl, isSlavic := changeEncoding(charmap.ISO8859_1, charmap.Windows1251, val)
-						if isSlavic {
-							newVal = sl
+					if *fixReadUtf8AsISO8859 {
+						out := make([]byte, 0)
+						for _, rn := range val {
+
+							r0, _ := charmap.ISO8859_1.EncodeRune(rn)
+
+							out = append(out, r0)
+						}
+						newVal = string(out)
+					} else {
+						okEnc := isValidEncoding(charmap.ISO8859_1, val)
+						if !okEnc {
+							sl, isSlavic := changeEncoding(charmap.ISO8859_1, charmap.Windows1251, val)
+							if isSlavic {
+								newVal = sl
+							}
 						}
 					}
 
