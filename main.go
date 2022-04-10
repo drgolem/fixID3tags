@@ -41,6 +41,7 @@ func main() {
 	overrideAlbumPtr := flag.String("override-album", "", "set new value for album tag")
 	skipEmptyTags := flag.Bool("skip-empty-tags", false, "skip empty tags")
 	fixReadUtf8AsISO8859 := flag.Bool("fix-ISO8859-1", false, "undo UTF8 tag read as ISO8859-1")
+	minimalTagParse := flag.Bool("fix-title-only", false, "parse and fix title only")
 
 	flag.Parse()
 
@@ -99,10 +100,15 @@ func main() {
 				return nil
 			}
 
+			parseFields := []string{idTagArtist, idTagAlbum, idTagTitle}
+			if *minimalTagParse {
+				parseFields = []string{idTagTitle}
+			}
+
 			tag, err := id3v2.Open(osPathname,
 				id3v2.Options{
 					Parse:       true,
-					ParseFrames: []string{idTagArtist, idTagAlbum, idTagTitle},
+					ParseFrames: parseFields,
 				})
 			if err != nil {
 				log.Fatalf("Error while opening mp3 file [%s]: %v", osPathname, err)
