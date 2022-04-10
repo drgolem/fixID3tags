@@ -37,8 +37,8 @@ func main() {
 
 	dryRun := flag.Bool("dry-run", true, "dry run, no changes")
 	musicDirPtr := flag.String("music-dir", "", "path to music folder")
-	overrideArtistPtr := flag.String("override_artist", "", "set new value for artist tag")
-	overrideAlbumPtr := flag.String("override_album", "", "set new value for album tag")
+	overrideArtistPtr := flag.String("override-artist", "", "set new value for artist tag")
+	overrideAlbumPtr := flag.String("override-album", "", "set new value for album tag")
 	skipEmptyTags := flag.Bool("skip-empty-tags", false, "skip empty tags")
 
 	flag.Parse()
