@@ -33,7 +33,7 @@ Some mp3 files have tags encoded as ISO8859-1 but have russian text inside (cp12
 ``` 
 this will run in dry mode and show suggested changes. To apply changes, run
 ```sh
-./fixID3tags -music-dir="<MUSIC>" -sry-run=false
+./fixID3tags -music-dir="<MUSIC>" -dry-run=false
 ``` 
 
 Some mp3 files have incorrectly set encoding as ISO8859-1 but actual data is in UTF8, to fix this do
